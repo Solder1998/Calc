@@ -1,73 +1,263 @@
-<?php get_header(); ?>
+/*
+Theme Name: CalcOnlineHub
+Author: Codex
+Version: 8.0.0
+Description: SEO-first WordPress theme for calculator hubs.
+*/
 
-<div class="page-header-bg">
-    <div class="container">
-        <h1 class="entry-title">Онлайн Калькуляторы</h1>
-        <p class="hero-desc">Агрегатор точных калькуляторов для инженеров, строителей и студентов.</p>
-    </div>
-</div>
+:root {
+  --bg: #0b1220;
+  --surface: #ffffff;
+  --muted: #5b6475;
+  --text: #1f2937;
+  --brand: #2563eb;
+  --brand-dark: #1e40af;
+  --border: #e5e7eb;
+}
 
-<main class="container">
-    <?php
-    // Получаем все рубрики калькуляторов
-    $categories = get_terms(array(
-        'taxonomy' => 'calc_category',
-        'hide_empty' => false,
-    ));
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+  background: #f7f8fb;
+  line-height: 1.6;
+}
 
-    if (!empty($categories) && !is_wp_error($categories)) {
-        // ВЫВОД КЛАСТЕРАМИ (ПО РУБРИКАМ)
-        foreach ($categories as $category) {
-            $calc_query = new WP_Query(array(
-                'post_type' => 'calculator',
-                'posts_per_page' => -1,
-                'tax_query' => array(
-                    array(
-                        'taxonomy' => 'calc_category',
-                        'field' => 'term_id',
-                        'terms' => $category->term_id,
-                    )
-                )
-            ));
+.container {
+  width: min(1140px, 92%);
+  margin: 0 auto;
+}
 
-            if ($calc_query->have_posts()) {
-                echo '<div class="silo-section">';
-                echo '<h2 class="silo-title">' . esc_html($category->name) . '</h2>';
-                echo '<div class="calc-cards-grid">';
-                while ($calc_query->have_posts()) : $calc_query->the_post(); ?>
-                    <a href="<?php the_permalink(); ?>" class="calc-card">
-                        <div class="calc-card-icon">🧮</div>
-                        <div class="calc-card-content">
-                            <h3><?php the_title(); ?></h3>
-                            <span class="calc-card-btn">Рассчитать →</span>
-                        </div>
-                    </a>
-                <?php endwhile;
-                echo '</div></div>';
-                wp_reset_postdata();
-            }
-        }
-    } else {
-        // ЕСЛИ РУБРИК НЕТ, ВЫВОДИМ ВСЕ КАЛЬКУЛЯТОРЫ ОБЩИМ СПИСКОМ
-        $all_calcs = new WP_Query(array('post_type' => 'calculator', 'posts_per_page' => -1));
-        if ($all_calcs->have_posts()) {
-            echo '<div class="calc-cards-grid">';
-            while ($all_calcs->have_posts()) : $all_calcs->the_post(); ?>
-                <a href="<?php the_permalink(); ?>" class="calc-card">
-                    <div class="calc-card-icon">⚡</div>
-                    <div class="calc-card-content">
-                        <h3><?php the_title(); ?></h3>
-                        <span class="calc-card-btn">Рассчитать →</span>
-                    </div>
-                </a>
-            <?php endwhile;
-            echo '</div>';
-            wp_reset_postdata();
-        } else {
-            echo '<p>Создайте первый калькулятор в Фабрике Промптов!</p>';
-        }
-    }
-    ?>
-</main>
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(11, 18, 32, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-<?php get_footer(); ?>
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 68px;
+}
+
+.logo-link {
+  color: #fff;
+  font-weight: 800;
+  font-size: 20px;
+  text-decoration: none;
+}
+
+.main-navigation ul {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  list-style: none;
+  gap: 16px;
+}
+
+.main-navigation a {
+  color: #dbeafe;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.page-header-bg {
+  background: linear-gradient(140deg, #1d4ed8 0%, #1e3a8a 70%);
+  color: #fff;
+  padding: 44px 0;
+}
+
+.entry-title {
+  margin: 10px 0;
+  font-size: clamp(30px, 4vw, 42px);
+}
+
+.hero-desc {
+  margin: 0;
+  max-width: 780px;
+  color: #dbeafe;
+}
+
+.main-area { padding: 28px 0 40px; }
+
+.content-sidebar-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(280px, 1fr);
+  gap: 26px;
+  align-items: start;
+  padding: 28px 0 40px;
+}
+
+.post-card,
+.calculator-content-wrapper,
+.sidebar .widget,
+.auto-toc,
+.silo-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.05);
+}
+
+.entry-content h2,
+.entry-content h3 { scroll-margin-top: 90px; }
+
+.auto-toc {
+  margin-bottom: 24px;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.toc-title { margin: 0 0 12px; font-weight: 700; }
+.toc-list { margin: 0; padding-left: 18px; }
+.toc-list li + li { margin-top: 8px; }
+.toc-level-3 { margin-left: 16px; }
+
+.custom-calculator-holder {
+  border: 2px dashed #93c5fd;
+  background: #f8fbff;
+  border-radius: 12px;
+  padding: 18px;
+  margin: 20px 0;
+}
+
+.catalog-search {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.catalog-search input,
+.catalog-search button {
+  height: 48px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0 14px;
+}
+
+.catalog-search input { flex: 1; }
+.catalog-search button {
+  background: #0f172a;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.calc-cards-grid,
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.calc-card,
+.related-card {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  background: #fff;
+}
+
+.calc-card:hover,
+.related-card:hover {
+  transform: translateY(-2px);
+  border-color: #93c5fd;
+  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.18);
+}
+
+.calc-card-icon { font-size: 24px; }
+.calc-card-content { display: flex; flex-direction: column; }
+.calc-card-content small { color: var(--muted); }
+
+.widget-links { margin: 0; padding-left: 18px; }
+.widget-links li + li { margin-top: 8px; }
+.widget-links a { color: var(--brand-dark); }
+
+.faq-box details {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff;
+}
+
+.faq-box details + details { margin-top: 10px; }
+.faq-box summary { cursor: pointer; font-weight: 700; }
+
+.ch-breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: #dbeafe;
+}
+
+.ch-breadcrumbs a { color: #fff; }
+.ch-breadcrumbs span { opacity: .9; }
+
+.auto-link {
+  color: var(--brand-dark);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+
+.site-footer {
+  background: #0b1220;
+  color: #cbd5e1;
+  padding-top: 34px;
+  margin-top: 20px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.site-footer a { color: #93c5fd; }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,.14); padding: 12px 0 18px; margin-top: 18px; }
+
+.mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+.mobile-menu-toggle span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: #fff;
+}
+
+@media (max-width: 920px) {
+  .content-sidebar-layout { grid-template-columns: 1fr; }
+  .mobile-menu-toggle { display: flex; }
+  .main-navigation {
+    display: none;
+    position: absolute;
+    top: 68px;
+    left: 0;
+    width: 100%;
+    background: #0b1220;
+    padding: 12px 4%;
+  }
+  .main-navigation.active { display: block; }
+  .main-navigation ul { flex-direction: column; }
+  .footer-grid { grid-template-columns: 1fr; }
+}
